@@ -13,6 +13,7 @@ class Provider extends AbstractProvider implements ProviderInterface
      * http://open.renren.com/wiki/OAuth2.0
      */
     const IDENTIFIER = 'RENREN';
+    const API_HOST = 'api.renren.com';
 
     /**
      * The scopes being requested.
@@ -49,13 +50,11 @@ class Provider extends AbstractProvider implements ProviderInterface
      */
     protected function getUserByToken($token)
     {
-        $response = $this->getHttpClient()->get('https://openapi.baidu.com/rest/2.0/passport/users/getLoggedInUser?access_token='.$token);
+        $response = $this->getHttpClient()->get('https://'.self::API_HOST.'/v2/user/login/get?access_token='.$token);
         
-//      $user = json_decode($this->removeCallback($response->getBody()->getContents()), true);
-//      
-//      $response = $this->getHttpClient()->get('https://openapi.baidu.com/rest/2.0/passport/users/getInfo?access_token='.$token);
+        $user = json_decode($this->removeCallback($response->getBody()->getContents()), true);
         
-        return json_decode($this->removeCallback($response->getBody()->getContents()), true);
+        return $user['response'];
     }
 
     /**
@@ -66,8 +65,8 @@ class Provider extends AbstractProvider implements ProviderInterface
     protected function mapUserToObject(array $user)
     {
         return (new User())->setRaw($user)->map([
-            'id' => $user['uid'], 'nickname' => $user['uname'],
-            'name' => null, 'email' => null, 'avatar' => 'http://tb.himg.baidu.com/sys/portrait/item/'.$user['portrait'],
+            'id' => $user['id'], 'nickname' => $user['name'],
+            'name' => null, 'email' => null, 'avatar' => $user['avatar'][1]['url'],
         ]);
     }
 
